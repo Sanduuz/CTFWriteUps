@@ -24,7 +24,7 @@
 
 ---
 
-### Reconnaissance
+### Step one - Reconnaissance
 
 The challenge starts with a website that looks like this:
 
@@ -52,10 +52,6 @@ After the XML declaration there is the root element `<creds>` (Elements are some
 So it seems that the `xml.php` file is used for some kind of XML-based authentication system running on the server.
 
 Time to dig deeper and start experimenting by ourselves.
-
-<br />
-
-### Experimentation
 
 Let us traverse to the path `/xml.php` on the server to see whether the file still exists after moving to production.
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml.php.png" />
@@ -95,6 +91,23 @@ print(request.text)
 Running the script `python3 send_request.py` lets us see the server response when trying to authenticate with `admin:admin` credentials.
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
 
-Yet again the same error as previously. No more new information it seems.
+Yet again the same error as previously. 
 
-- There must be a XML parser to make any sense of sent data -> XXE
+The server has to understand the data that we supply in the form of XML. That means that there must be an underlying XML parser parsing our input on the server.
+
+What if we try to trick the XML parser into crashing? That might give us some extra information that could come in handy. We can do that by changing our XML data in a way that the username and/or password contains illegal characters that would usually throw off the XML parser.
+
+We can check that by using the same script, but this time let's change the credentials from `admin` to ```!@#$%^&*()_+{}><;:'"`\\/```
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
+
+Still nothing... 
+
+What about completely changing the XML body? Nope, still the same error. There is no more new information available it seems. We just need to `Try Harder!`
+
+<br />
+
+### Step two - Weaponization
+
+What we know so far is that the webserver has a XML based authentication system. That means that there must be an underlying XML parser that parses the data on the server.
+
+What if we try to attack the webserver through the XML parser itself? One pretty common vulnerability regarding XML parsers is XML External Entity Attack (XXE).

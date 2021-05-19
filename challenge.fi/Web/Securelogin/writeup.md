@@ -23,9 +23,16 @@
 **Out-of-band XML External Entity (OOB-XXE) attack to read contents of /etc/flag.txt on server.**
 
 The challenge starts with a website that looks like this:
-![Website Frontpage](https://raw.githubusercontent.com/Sanduuz/CTFWriteUps/master/challenge.fi/Web/Securelogin/attachments/website_frontpage.png)
 
-First we should take a look at the source code of the website. This can be achieved with the keyboard shortcut <kbd>CTRL</kbd>+<kbd>U</kbd> 
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_frontpage.png" width="428" height="281" />
+
+First we should take a look at the source code of the website in order to see what it might be hiding. This can be achieved by clicking the right mouse button and choosing "View page source" or simply with the keyboard shortcut <kbd>CTRL</kbd>+<kbd>U</kbd>.
+
+The source code of the frontpage:
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_sourcecode.png" width="1440" height="320" />
+
+
 
 Source code | Vulnerable binary
 :----------:|:-----------------:

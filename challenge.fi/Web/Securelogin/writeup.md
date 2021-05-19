@@ -41,33 +41,15 @@ The debug information seems to be a HTTP POST request to `xml.php` residing on t
 Decoding this data sent in the debug request results in some XML data.
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_data.png" />
 
+The XML data sent with the request starts with a XML declaration that is used to specify metadata for the parser. This metadata includes xml version and character encoding to be used by the parser.
 
-Source code | Vulnerable binary
-:----------:|:-----------------:
-![source code](https://raw.githubusercontent.com/Sanduuz/CTFWriteUps/master/PicoCTF2018/BinaryExploitation/BufferOverflow2/attachments/source.png) | ![vulnerable binary](https://raw.githubusercontent.com/Sanduuz/CTFWriteUps/master/PicoCTF2018/BinaryExploitation/BufferOverflow2/attachments/vuln.png)
+After the XML declaration there is the root element `<creds>` (Elements are sometimes also referred as tags). This root tag has 2 child-tags: `<user>` and `<pass>`.
 
-##### Note: In order to exploit the vulnerable program locally, you will need to create a file called `flag.txt` with a fake flag inside. In order to get the real flag you have to exploit the vulnerable program in the shell server.
+So it seems that the `xml.php` file is used for some kind of XML-based authentication system running on the server.
 
-So let's debug the code first.\
-In the very beginning some libraries are being imported but those can be ignored. After that, few variables are defined. _**BUFSIZE**_ with the value of 100 and _**FLAGSIZE**_ with the value of 64. The _**FLAGSIZE**_ can also be ignored (just make sure your fake flag is not over 64 characters long). After those variables are defined, the rest of the code is just defining the functions.
+Time to dig deeper and start experimenting by ourselves.
 
-Now starting from the `main` function, it can be seen that the program sets some gid bits. This is because the program is an _**SUID binary**_ meaning that it has **elevated permissions** during execution. SUID binaries are used in actions which require higher privileges than the normal user has. These include actions such as changing a password. The program requires elevated privileges in order to read the `flag.txt` file because our user has no permissions to do so.
+Let us traverse to the path `/xml.php` on the server to see whether the file still exists after moving to production.
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml.php.png" />
 
-After the permissions have been handled the program prints a string `"Please enter your string: "` to _stdout_ and then calls for the `vuln` function. In `vuln` a **buffer** is created with the size of _**BUFSIZE**_ which is 100 bytes. After that the program reads our input from _stdin_ and **stores** it into the **buffer**. Our input is reflected back to us and the program exits.
-
-That seems to be all about program flow, but what about the `win` function you might ask? We need to exploit a _**buffer overflow**_ vulnerability in the `vuln` function as the name tells us. A _**buffer overflow**_ is an anomaly where a buffer in the program is filled with too much data resulting in the overflowing and overwriting of data.
-
-This leads us to a thing called _**stack**_. What is a _**stack**_?\
-Stack is a segment in computer memory. There are other segments such as text, data, bss and heap. Segments like text hold the code that is executed and it is read-only so the data in those segments can not be overwritten. However in stack, the data is not read-only so it can be overwritten. The stack might be a bit confusing at first because it grows _'upside down'_ towards lower memory addresses. Now how can we access the `win` function when it's never called in our program? When a function call in program is done, some things are going on in the stack.
-
-1. A _stack frame_ for the function is created and pushed onto the stack. Inside the _stack frame_ is the data that the function needs. In addition to parameters that the function might take, there's also a _**return address (RET)**_ and a _**stack frame pointer (SFP)**_. _**Return address (RET)**_ is the address in memory where the function will return after execution. _**Stack frame pointer (SFP)**_ is the value of _base pointer (BP)_ and is used to restore the value of _base pointer (BP)_ after execution.
-2. The current value of _stack pointer (SP)_ is copied to _base pointer (BP)_
-3. Memory is allocated on the stack for the local variables of the function. (In the `win` function for example the flag buffer)
-
-When calling the `vuln` function, the stack should look something like this:
-![Stack](https://raw.githubusercontent.com/Sanduuz/CTFWriteUps/master/PicoCTF2018/BinaryExploitation/BufferOverflow2/attachments/stack.png)
-
-This can be confirmed by running the program in a debugger such as GDB and inspecting the stack after supplying our string.
-![Vulnerable assembly]()
-
-*** TO BE CONTINUED ***
+We did not get a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a POST request with the XML data, a GET request was sent to the server.

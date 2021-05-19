@@ -22,6 +22,10 @@
 **TL;DR**\
 **Out-of-band XML External Entity (OOB-XXE) attack to read contents of /etc/flag.txt on server.**
 
+---
+
+### Reconnaissance
+
 The challenge starts with a website that looks like this:
 
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_frontpage.png" width="428" height="281" />
@@ -49,7 +53,48 @@ So it seems that the `xml.php` file is used for some kind of XML-based authentic
 
 Time to dig deeper and start experimenting by ourselves.
 
+<br />
+
+### Experimentation
+
 Let us traverse to the path `/xml.php` on the server to see whether the file still exists after moving to production.
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml.php.png" />
 
-We did not get a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a POST request with the XML data, a GET request was sent to the server.
+We did not get a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a HTTP POST request with the XML data, a HTTP GET request was sent to the server.
+
+Let us send a simple HTTP POST request containing the XML data with username and password "admin" to the server for test purposes. We can easily achieve this with the help of Python3.
+
+```python
+import requests                   # Import requests module for making HTTP requests
+import base64                     # Import base64 for encoding our data
+from urllib.parse import quote    # Import quote from urllib.parse for urlencoding
+
+# Specify Content-Type header to correspond the servers expectations.
+headers = {
+  "Content-Type":"application/x-www-form-urlencoded"
+}
+
+# Our XML data to be sent with the request
+xml_data = b"""<?xml version="1.0" encoding="ISO-8859-1"?>
+<creds>
+	<user>admin</user>
+	<pass>admin</pass>
+</creds>"""
+
+# Encode data and set data to be sent with the "xml" field
+encoded_data = quote(base64.b64encode(xml_data))
+post_data = u"xml="+encoded_data
+
+# Send request to the webpage with set headers and data
+request = requests.post("http://securelogin.challenge.fi:8880/xml.php", headers=headers, data=post_data)
+
+# Print server response
+print(request.text)
+```
+
+Running the script `python3 send_request.py` lets us see the server response when trying to authenticate with `admin:admin` credentials.
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
+
+Yet again the same error as previously. No more new information it seems.
+
+- There must be a XML parser to make any sense of sent data -> XXE

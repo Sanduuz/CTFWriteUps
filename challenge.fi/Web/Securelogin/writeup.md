@@ -26,12 +26,20 @@ The challenge starts with a website that looks like this:
 
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_frontpage.png" width="428" height="281" />
 
-First we should take a look at the source code of the website in order to see what it might be hiding. This can be achieved by clicking the right mouse button and choosing "View page source" or simply with the keyboard shortcut <kbd>CTRL</kbd>+<kbd>U</kbd>.
+First we should take a look at the source code of the website in order to see what it might be hiding. This can be achieved by clicking the right mouse button and choosing `View page source` or simply with the keyboard shortcut <kbd>CTRL</kbd>+<kbd>U</kbd>.
 
 The source code of the frontpage:
 
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_sourcecode.png" width="1440" height="320" />
 
+As we can see, the source code of the wegpage is hiding a comment left behind by the developer. The comment starts with `Debug info, remember to remove before moving to prod:`
+
+We can clearly see that this comment was not removed before moving to production. The debug information now gives us attackers some extra information about the service that we can leverage.
+
+The debug information seems to be a HTTP POST request to `xml.php` residing on the server itself. Some data is sent with the request in a field labeled `xml`. The data seems to be url encoded base64 data.
+
+Decoding this data sent in the debug request results in some XML data.
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_data.png" />
 
 
 Source code | Vulnerable binary

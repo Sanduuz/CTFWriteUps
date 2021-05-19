@@ -5,16 +5,15 @@
 * Points: 299
 * Solves: 16
 * Difficulty: Hard (?)
-* Description:<big><pre>
-The development team has made a proof of concept of the new Securelogin site. Somebody managed to put it to the public internet, but dev team is so confident that they don't think it matters so they left it open!
+* Description:
 
-Can you prove them wrong?! Are you the one who fetches the flag from /etc/flag.txt - file?
+> The development team has made a proof of concept of the new Securelogin site. Somebody managed to put it to the public internet, but dev team is so confident that they don't think it matters so they left it open!
+>
+> Can you prove them wrong?! Are you the one who fetches the flag from /etc/flag.txt - file?
+>
+> You can find the challenge from: http://securelogin.challenge.fi:8880/
 
-You can find the challenge from: http://securelogin.challenge.fi:8880/
-</pre></big>
-* Note:<big><pre>
-This challenge is based on a real world example of a finding from a bug bounty target. Pretty much 1=1, but some clues maybe around what to do...
-</big></pre>
+> Note: This challenge is based on a real world example of a finding from a bug bounty target. Pretty much 1=1, but some clues maybe around what to do...
 
 ---
 

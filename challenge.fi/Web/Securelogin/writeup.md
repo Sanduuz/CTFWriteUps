@@ -110,4 +110,36 @@ What about completely changing the XML body? Nope, still the same error. There i
 
 What we know so far is that the webserver has a XML based authentication system. That means that there must be an underlying XML parser that parses the data on the server.
 
-What if we try to attack the webserver through the XML parser itself? One pretty common vulnerability regarding XML parsers is XML External Entity Attack (XXE).
+What if we try to attack the webserver through the XML parser itself? One pretty common vulnerability regarding XML parsers is XML External Entity Attack (XXE), but what does XXE mean in practice?
+
+XML contains entities, which are basically like variables. They can be defined in the Document Type Definition (DTD) and then be referenced later on in the XML body. Let's take a look at a simple example.
+
+Here is the original XML data sent with the debug request:
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<creds>
+	<user>username</user>
+	<pass>password</pass>
+</creds>
+```
+
+Here is the same XML data, but this time the credentials are passed to the body as a XML entities.
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE Credentials [
+	<!ENTITY user "username">
+	<!ENTITY pass "password">
+]>
+<creds>
+	<user>&user;</user>
+	<pass>&pass;</pass>
+</creds>
+```
+
+First an internal Document Type Definition (DTD) is created in the beginning of the file (after the XML declaration). This is done with the `!DOCTYPE` keyword.
+
+Inside of the DTD, two entities are defined: `user` and `pass`. Entity declaration inside of the DTD is done with the `!ENTITY` keyword.
+
+These 2 entities are then referenced in the `<user>` and `<pass>` tags inside of the XML body. The syntax for referencing a XML entity is `&entityname;`
+
+When the XML parser parses these 2 scenarios, the result will be the same, even though the XML body looks different.

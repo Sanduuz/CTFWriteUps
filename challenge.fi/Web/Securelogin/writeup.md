@@ -1,5 +1,5 @@
 ## GenerationZ Challenge (challenge.fi) | Web | Securelogin
-##### Author: Sanduuz | Date: 19.05.2021
+##### Author: Sanduuz | Date: 20.05.2021
 ---
 ### Challenge details:
 * Points: 299
@@ -106,13 +106,13 @@ What about completely changing the XML body? Nope, still the same error. There i
 
 <br />
 
-### Step two - Weaponization
+### Step two - Getting ready
 
 What we know so far is that the webserver has a XML based authentication system. That means that there must be an underlying XML parser that parses the data on the server.
 
-What if we try to attack the webserver through the XML parser itself? One pretty common vulnerability regarding XML parsers is XML External Entity Attack (XXE), but what does XXE mean in practice?
+What if we try to attack the webserver through the XML parser itself? One pretty common vulnerability regarding XML parsers is XML External Entity Attack (XXE), but what does this mean in practice?
 
-XML contains entities, which are basically like variables. They can be defined in the Document Type Definition (DTD) and then be referenced later on in the XML body. Let's take a look at a simple example.
+XML contains entities, which are basically like variables. There are 3 types of entities: `General`, `Parameter` and `Predefined`. The most common entity is the `General entity`. They can be defined in the Document Type Definition (DTD) and then be referenced later on in the XML body. Let's take a look at a simple example with General Entities.
 
 Here is the original XML data sent with the debug request:
 ```xml
@@ -123,7 +123,7 @@ Here is the original XML data sent with the debug request:
 </creds>
 ```
 
-Here is the same XML data, but this time the credentials are passed to the body as a XML entities.
+Here is the same XML data, but this time the credentials are passed to the body as a XML entities:
 ```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Credentials [
@@ -142,4 +142,37 @@ Inside of the DTD, two entities are defined: `user` and `pass`. Entity declarati
 
 These 2 entities are then referenced in the `<user>` and `<pass>` tags inside of the XML body. The syntax for referencing a XML entity is `&entityname;`
 
-When the XML parser parses these 2 scenarios, the result will be the same, even though the XML body looks different.
+When the XML parser parses these 2 scenarios the result will be the same even though the XML body looks different.
+
+<br />
+
+Now that we know what XML general entities are, let's take a look at XML parameter entities.
+
+XML parameter entity is a special type of entity that is only allowed inside a DTD. They are more flexible and can be used for example to create an entity that has a general entity as the value.
+
+Let's take a look at an example using XML parameter entities.
+
+We can use the same XML snippet used in the previous example with some slight alterations:
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE Credentials [
+	<!ENTITY % user "<!ENTITY user 'username'>">
+	<!ENTITY % pass "<!ENTITY pass 'password'>">
+	%user;
+	%pass;
+]>
+<creds>
+	<user>&user;</user>
+	<pass>&pass;</pass>
+</creds>
+```
+
+So it seems that the value of the parameter entity is evaluated by the parser when it is referenced later on in the DTD. This comes in handy, especially for us attackers.
+
+The third type of XML entities is `predefined`. They are (like the name suggests) predefined and they are used for example parsing special characters. We can ignore those in this scenario.
+
+<br />
+
+The usage of XML parameter entities is not limited to just hardcoding values for general entities. With the help of the `SYSTEM` keyword the XML parser can retrieve data from local and remote sources.
+
+In addition to inline Document Type Definitions, DTD's can also be external.

@@ -1,5 +1,5 @@
 ## GenerationZ Challenge (challenge.fi) | Web | Securelogin
-##### Author: Sanduuz | Date: 20.05.2021
+##### Author: Sanduuz | Date: 21.05.2021
 ---
 ### Challenge details:
 * Points: 299
@@ -175,4 +175,48 @@ The third type of XML entities is `predefined`. They are (like the name suggests
 
 The usage of XML parameter entities is not limited to just hardcoding values for general entities. With the help of the `SYSTEM` keyword the XML parser can retrieve data from local and remote sources.
 
-In addition to inline Document Type Definitions, DTD's can also be external.
+In addition to inline Document Type Definitions, DTD's can also be external. This means that external DTD's can be retrieved and used with the help of XML parameter entities.
+
+Here's a simple example using external DTD:
+
+Contents of external DTD:
+```xml
+<!ENTITY user "username">
+<!ENTITY pass "password">
+```
+
+XML Data:
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE Credentials [
+	<!ENTITY % dtd SYSTEM "http://example.com/external.dtd">
+	%dtd;
+]>
+<creds>
+	<user>&user;</user>
+	<pass>&pass;</pass>
+</creds>
+```
+
+This would retrieve the external DTD file from example.com. After it has been retrieved, it is referenced inside of the local DTD. This would then evaluate the contents of the external DTD file and the general entities `user` and `pass` would now be declared.
+
+Now that the general entities are declared, they can be referenced in the XML body.
+
+In this example the parser read the contents of external.dtd, but it could just as well read other files including local files. This really could come in handy since we need to read the contents of the `/etc/flag.txt` file.
+
+<br />
+
+### Step three - Exploitation
+
+Now that we have established some prerequisites regarding XML we can proceed to exploiting XXE.
+
+There are mainly 3 types of XXE attacks. Inband XXE, Error Based XXE and Out-of-Band XXE (OOB-XXE).
+
+In an Inband XXE the result will be directly shown on the user. Taking a look at the original XML data sent with the POST request shows us that realistically there would be 2 points of injections, the `user` and `pass` field.
+
+As we previously tried to authenticate as admin, we were greeted with the error message `Username or password not found! Try Harder!`. As we can see, we get no output based on our input. This means that we can leave out Inband XXE, since that doesn't seem to be possible in this scenario.
+
+The second type of XXE attack is error based, but as we already noticed before, the error message is always the same whatever our input is. This renders error based XXE unusable.
+
+So we are only left with Out-of-Band XXE. Let's take a deeper dive into OOB-XXE to see how we can use it to exploit the server.
+

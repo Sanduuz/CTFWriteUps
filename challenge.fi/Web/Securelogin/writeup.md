@@ -335,3 +335,33 @@ This time when starting up our webserver, instead of the standard HTTP port 80, 
 `php -S 0.0.0.0:21`
 
 <img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server-21.png" width="500">
+
+Time to send our payload and hope for the best...
+
+Now look at that!
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/pwned.png">
+
+We can see that the server retrieved our malicious DTD file and shortly after that made a GET request back to our server with some base64 data.
+
+Let's decode that base64 data and see if it actually is the flag.
+
+<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/flag.png">
+
+It is the flag!
+
+<details>
+	<summary>Flag:</summary>
+	
+	flag{T34m_R0T_W4s_H3rE!}
+</details>
+
+<br />
+
+### Summary
+
+The challenge was great since it was realistic and had multiple problems to overcome in order to retrieve the flag. It really gives a taste of what cybersecurity in reality is; Problem solving in small pieces, learning new things & most importantly not giving up.
+
+It was a tough challenge even to the more advanced cyber wizards, but in the end it was very enjoyable challenge.
+
+The challenge taught me a whole lot of new things in its versatile nature.

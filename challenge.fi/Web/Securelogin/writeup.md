@@ -1,9 +1,9 @@
 ## GenerationZ Challenge (challenge.fi) | Web | Securelogin
-##### Author: Sanduuz | Date: 21.05.2021
+##### Author: Sanduuz | Date: 06.06.2021
 ---
 ### Challenge details:
 * Points: 299
-* Solves: 16
+* Solves: 17
 * Difficulty: Hard (?)
 * Description:
 
@@ -362,6 +362,6 @@ It is the flag!
 
 The challenge was great since it was realistic and had multiple problems to overcome in order to retrieve the flag. It really gives a taste of what cybersecurity in reality is; Problem solving in small pieces, learning new things & most importantly not giving up.
 
-It was a tough challenge even to the more advanced cyber wizards, but in the end it was very enjoyable challenge.
+It was a tough challenge even to the more advanced cyber wizards, but in the end it was very enjoyable.
 
 The challenge taught me a whole lot of new things in its versatile nature.

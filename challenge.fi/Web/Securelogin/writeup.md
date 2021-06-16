@@ -38,7 +38,7 @@ The source code of the frontpage:
 
 As we can see, the source code of the wegpage is hiding a comment left behind by the developer. The comment starts with `Debug info, remember to remove before moving to prod:`
 
-We can clearly see that this comment was not removed before moving to production. The debug information now gives us attackers some extra information about the service that we can leverage.
+It can clearly be seen that this comment was not removed before moving to production. The debug information now gives us attackers some extra information about the service that can be leveraged.
 
 The debug information seems to be a HTTP POST request to `xml.php` residing on the server itself. Some data is sent with the request in a field labeled `xml`. The data seems to be url encoded base64 data.
 

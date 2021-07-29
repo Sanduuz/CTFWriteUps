@@ -36,7 +36,7 @@ The source code of the frontpage:
 
 <img src="./attachments/website_sourcecode.png" width="1440" height="320" />
 
-As we can see, the source code of the wegpage is hiding a comment left behind by the developer. The comment starts with `Debug info, remember to remove before moving to prod:`
+As we can see, the source code of the webpage is hiding a comment left behind by the developer. The comment starts with `Debug info, remember to remove before moving to prod:`
 
 It can clearly be seen that this comment was not removed before moving to production. The debug information now gives us attackers some extra information about the service that can be leveraged.
 

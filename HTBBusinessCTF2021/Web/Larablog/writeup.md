@@ -27,7 +27,7 @@ Larablog was the hardest web challenge from HackTheBox Business CTF 2021. In the
 		1. [Discovering the LFI](#discovering-the-lfi)
 		2. [Digging deeper](#digging-deeper)
 		3. [Exploitation](#exploitation)
-* [Summary and opinions]("#summary-and-opinions")
+* [Summary and opinions](#summary-and-opinions)
 
 ---
 

@@ -356,6 +356,20 @@ Also looking at the depth of the circuit already on this step does not look prom
 
 We somehow need to find a way to perform the operations simultaneously. This should be possible according to quantum theory and it is also one of the great differences between quantum and regular computers.
 
+**Edit: Let's create a truth table with inputs and the results of the logical checks:**
+
+**Edit:**
+
+![truth_table](./attachments/truth_table.png)
+
+**Edit: After looking at the numbers for a while you can notice that this creates an 3-bit full adder circuit.**
+
+**Edit: A 3-bit full adder circuit calculates the sum of input bits and outputs 2 bits. In addition to this the input A needs to stay unmodified due to the logic check in the test-suite.**
+
+**Edit: You can read more about this from [quantum-inspire's page about full-adders](https://www.quantum-inspire.com/kbase/full-adder/).**
+
+**Edit: This leads us to a toffoli gate.**
+
 We can achieve this with the help of a [Toffoli gate](https://en.wikipedia.org/wiki/Toffoli_gate).
 
 > In logic circuits, the Toffoli gate (also CCNOT gate), invented by Tommaso Toffoli, is a universal reversible logic gate, which means that any classical reversible circuit can be constructed from Toffoli gates.
@@ -401,11 +415,13 @@ Let's send `toffoli(0,1,2)` to the server:
 |:-------------:|
 | Server output |
 
-Seems good! There is a problem though. The 2 Hadamard gates in the beginning cancel out eachother breaking the toffoli gate.
+Seems good! There is a problem though. The 2 Hadamard gates in the beginning cancel out eachother. ~breaking the toffoli gate.~
 
-Normally there wouldn't be 2 H gates next to eachother, but in our case it happens because we are constructing the CX gates with the H-CZ-H combination.
+~Normally there wouldn't be 2 H gates next to eachother, but in our case it happens because we are constructing the CX gates with the H-CZ-H combination.~
 
-Luckily this can be avoided by just removing the first 2 Hadamard gates.
+~Luckily this can be avoided by just removing the first 2 Hadamard gates.~
+
+**Edit: The 2 Hadamard gates do not break the toffoli gate after all. They can be removed as an optimization to reduce the number of gates.**
 
 Let's modify `tinker.py` a bit. Let's change all occurences of `';'.join(ports)` to `';'.join(ports[2:])` in order to avoid the dual-Hadamard issue.
 

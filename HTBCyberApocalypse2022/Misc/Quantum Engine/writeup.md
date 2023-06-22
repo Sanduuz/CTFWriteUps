@@ -69,7 +69,7 @@ In the `__init__` function we can see that the data we send to the server is the
 
 After init there are some function definitions for 4 different gates: H, T, Tdg & CZ Gates.
 
-Each of these gates take in a single qubit. What do these gates mean and what do they do?
+Each of these gates take in qubit(s). What do these gates mean and what do they do?
 
 This is the point where the endless Googling and reading documentation began. Luckily the gate definitions can be found from the qiskit library documentation.
 

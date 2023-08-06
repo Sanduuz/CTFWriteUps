@@ -851,4 +851,4 @@ And there it is! The sweet juicy flag.
 
 This challenge was quite a history lesson for me since I'm too young to have encountered punch cards or COBOL in real life.
 
-I still enjoyed it and learned quite many new things even though it was really long and I developed a special kind of hate love relationship with COBOL code.
+I still enjoyed it and learned quite many new things even though it was really long and I developed a special kind of love-hate relationship with COBOL code.

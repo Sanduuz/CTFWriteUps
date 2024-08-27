@@ -91,7 +91,7 @@ But what actually are these things called "punch cards"?
 
 ### Punch cards?
 
-A punch card is a piece of stiff paper that holds digital data represented by the presensce or absence of holes in predefined positions.
+A punch card is a piece of stiff paper that holds digital data represented by the presence or absence of holes in predefined positions.
 
 How would one actually get any data out of these cards?
 
